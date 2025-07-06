@@ -255,3 +255,32 @@ main {
         margin-bottom: 1.5rem;
     }
 }
+
+/* --- 9. Bookmark Icon Styles --- */
+.bookmark-icon {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    cursor: pointer;
+    width: 28px;
+    height: 28px;
+    fill: var(--secondary-text); /* Default color */
+    transition: all 0.2s ease-in-out;
+}
+
+.bookmark-icon:hover {
+    fill: var(--primary-text);
+    transform: scale(1.1);
+}
+
+.bookmark-icon.bookmarked {
+    fill: var(--accent-color); /* Color when bookmarked */
+}
+
+/* Make card content relative for positioning the icon */
+.card-content {
+    position: relative;
+    padding: 1.5rem 2rem;
+    display: flex;
+    flex-direction: column;
+}

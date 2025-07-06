@@ -12,6 +12,32 @@ document.addEventListener("DOMContentLoaded", () => {
     let currentlyDisplayedArticles = [];
     let currentPage = 1;
     const ARTICLES_PER_PAGE = 10;
+    
+    // --- Bookmark State ---
+    let bookmarkedArticles = [];
+
+    // --- Bookmark Functions ---
+    function loadBookmarks() {
+        const savedBookmarks = localStorage.getItem('cyberNewsBookmarks');
+        if (savedBookmarks) {
+            bookmarkedArticles = JSON.parse(savedBookmarks);
+        }
+    }
+
+    function saveBookmarks() {
+        localStorage.setItem('cyberNewsBookmarks', JSON.stringify(bookmarkedArticles));
+    }
+
+    function toggleBookmark(articleLink) {
+        const bookmarkIndex = bookmarkedArticles.indexOf(articleLink);
+        if (bookmarkIndex > -1) {
+            bookmarkedArticles.splice(bookmarkIndex, 1);
+        } else {
+            bookmarkedArticles.push(articleLink);
+        }
+        saveBookmarks();
+    }
+
 
     // --- Dark Mode ---
     themeToggle.addEventListener('change', () => {
@@ -27,17 +53,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // --- Rendering Functions ---
     function renderArticles(articles) {
-        if (!articles || articles.length === 0) {
-            feedContainer.innerHTML = "<p>No articles found matching your criteria.</p>";
-            return;
-        }
-
+        // This function now only appends articles to the container
         const fragment = document.createDocumentFragment();
         for (const item of articles) {
             const articleElement = document.createElement("div");
             articleElement.className = "article-card";
             const publicationDate = new Date(item.pubDate).toLocaleDateString("en-US", { year: 'numeric', month: 'long', day: 'numeric' });
             const imageUrl = (item.imageUrl && item.imageUrl.startsWith('http')) ? item.imageUrl : 'https://i.imgur.com/gY9V3sD.jpeg';
+            
+            const isBookmarked = bookmarkedArticles.includes(item.link);
+            const bookmarkedClass = isBookmarked ? 'bookmarked' : '';
 
             articleElement.innerHTML = `
                 <div class="card-image-container">
@@ -46,6 +71,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     </a>
                 </div>
                 <div class="card-content">
+                    <svg class="bookmark-icon ${bookmarkedClass}" data-link="${item.link}">
+                        <use xlink:href="#icon-bookmark"></use>
+                    </svg>
                     <div class="article-meta">
                         <span class="article-source">${item.source}</span>
                         <span class="article-date">${publicationDate}</span>
@@ -66,12 +94,25 @@ document.addEventListener("DOMContentLoaded", () => {
         const newArticles = currentlyDisplayedArticles.slice(startIndex, endIndex);
         renderArticles(newArticles);
 
-        // Hide button if no more articles
         if (endIndex >= currentlyDisplayedArticles.length) {
             loadMoreBtn.style.display = 'none';
         }
     }
     loadMoreBtn.addEventListener('click', loadMoreArticles);
+    
+    // --- Event listener for bookmark clicks ---
+    feedContainer.addEventListener('click', (e) => {
+        const bookmarkIcon = e.target.closest('.bookmark-icon');
+        if (bookmarkIcon) {
+            const articleLink = bookmarkIcon.dataset.link;
+            toggleBookmark(articleLink);
+            bookmarkIcon.classList.toggle('bookmarked');
+            // If we are in the "Bookmarked" view, re-apply filters to remove the card instantly
+            if (filterContainer.querySelector('.filter-btn.active')?.dataset.source === 'Bookmarked') {
+                applyFilters();
+            }
+        }
+    });
 
     // --- Filtering Logic ---
     function applyFilters() {
@@ -80,17 +121,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (selectedSource === 'All') {
             currentlyDisplayedArticles = [...masterArticleList];
+        } else if (selectedSource === 'Bookmarked') {
+            currentlyDisplayedArticles = masterArticleList.filter(article => bookmarkedArticles.includes(article.link));
         } else {
             currentlyDisplayedArticles = masterArticleList.filter(article => article.source === selectedSource);
         }
         
-        // Reset view for the new filter
+        // Clear the container before rendering a new filtered view
         feedContainer.innerHTML = '';
         currentPage = 1;
         const initialArticles = currentlyDisplayedArticles.slice(0, ARTICLES_PER_PAGE);
         renderArticles(initialArticles);
         
-        // Show or hide "Load More" button based on new filtered list
         if (currentlyDisplayedArticles.length > ARTICLES_PER_PAGE) {
             loadMoreBtn.style.display = 'block';
         } else {
@@ -99,24 +141,28 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function setupFilters() {
-        const sources = ['All', ...new Set(masterArticleList.map(article => article.source))];
+        const sources = ['All', 'Bookmarked', ...new Set(masterArticleList.map(article => article.source))];
         filterContainer.innerHTML = sources.map(source => 
             `<button class="filter-btn" data-source="${source}">${source}</button>`
         ).join('');
         
         const filterButtons = filterContainer.querySelectorAll('.filter-btn');
-        filterButtons[0].classList.add('active'); // Activate "All" button
+        filterButtons[0].classList.add('active');
 
         filterContainer.addEventListener('click', (e) => {
             if (e.target.tagName !== 'BUTTON') return;
+
             filterButtons.forEach(btn => btn.classList.remove('active'));
             e.target.classList.add('active');
+            
+            // **THE FIX IS HERE:** The stray 'ax' is removed.
             applyFilters();
         });
     }
 
     // --- Initial Data Fetch ---
     async function loadNews() {
+        loadBookmarks(); // Load saved bookmarks first
         try {
             const response = await fetch(NEWS_ENDPOINT);
             if (!response.ok) throw new Error(`Server error: ${response.status}`);
@@ -124,13 +170,11 @@ document.addEventListener("DOMContentLoaded", () => {
             masterArticleList = await response.json();
             currentlyDisplayedArticles = [...masterArticleList];
             
-            loadingContainer.style.display = 'none'; // Hide skeletons
+            loadingContainer.style.display = 'none';
             
-            // Initial render
             const initialArticles = currentlyDisplayedArticles.slice(0, ARTICLES_PER_PAGE);
             renderArticles(initialArticles);
             
-            // Show "Load More" if needed
             if(currentlyDisplayedArticles.length > ARTICLES_PER_PAGE) {
                 loadMoreBtn.style.display = 'block';
             }

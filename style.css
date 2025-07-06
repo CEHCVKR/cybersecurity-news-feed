@@ -1,34 +1,51 @@
+/* --- 1. Color Palette & Theme Variables --- */
 :root {
     --bg-color: #f8f9fa;
     --card-bg: #ffffff;
-    --header-footer-bg: #2c3e50;
+    --header-bg: #2c3e50;
     --primary-text: #34495e;
     --secondary-text: #7f8c8d;
     --accent-color: #e67e22;
     --border-color: #ecf0f1;
-    
-    --font-heading: 'Teko', sans-serif;
-    --font-body: 'Poppins', sans-serif;
+    --shadow-color: rgba(0, 0, 0, 0.05);
+    --skeleton-base: #e0e0e0;
+    --skeleton-shine: #f5f5f5;
 }
 
+body.dark-mode {
+    --bg-color: #1a202c;
+    --card-bg: #2d3748;
+    --header-bg: #1a202c;
+    --primary-text: #e2e8f0;
+    --secondary-text: #a0aec0;
+    --border-color: #4a5568;
+    --shadow-color: rgba(0, 0, 0, 0.2);
+    --skeleton-base: #4a5568;
+    --skeleton-shine: #718096;
+}
+
+/* --- 2. General Body Styles --- */
 body {
-    font-family: var(--font-body);
+    font-family: 'Poppins', sans-serif;
     background-color: var(--bg-color);
     color: var(--primary-text);
     margin: 0;
     line-height: 1.7;
+    transition: background-color 0.3s, color 0.3s;
 }
 
+/* --- 3. Header & Theme Switch --- */
 header {
-    background: var(--header-footer-bg);
+    background: var(--header-bg);
     color: #ffffff;
     padding: 2rem 1rem;
     text-align: center;
     border-bottom: 4px solid var(--accent-color);
+    position: relative;
 }
 
 header h1 {
-    font-family: var(--font-heading);
+    font-family: 'Teko', sans-serif;
     font-size: 4rem;
     font-weight: 500;
     margin: 0;
@@ -41,159 +58,52 @@ header p {
     color: #bdc3c7;
 }
 
+.theme-switch-wrapper {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+}
+.theme-switch {
+    display: inline-block;
+    height: 34px;
+    position: relative;
+    width: 60px;
+}
+.theme-switch input { display: none; }
+.slider {
+    background-color: #ccc;
+    bottom: 0;
+    cursor: pointer;
+    left: 0;
+    position: absolute;
+    right: 0;
+    top: 0;
+    transition: .4s;
+}
+.slider:before {
+    background-color: #fff;
+    bottom: 4px;
+    content: "";
+    height: 26px;
+    left: 4px;
+    position: absolute;
+    transition: .4s;
+    width: 26px;
+}
+input:checked + .slider { background-color: var(--accent-color); }
+input:checked + .slider:before { transform: translateX(26px); }
+.slider.round { border-radius: 34px; }
+.slider.round:before { border-radius: 50%; }
+
+/* --- 4. Main Content & Controls --- */
 main {
     max-width: 900px;
     margin: 2.5rem auto;
     padding: 0 1rem;
 }
 
-#loading {
-    text-align: center;
-    font-size: 1.2rem;
-    padding: 3rem;
-    color: var(--secondary-text);
-}
-
-.article-card {
-    display: flex;
-    background: var(--card-bg);
-    border: 1px solid #e9ecef; /* Softer border color */
-    border-radius: 12px;       /* More rounded corners */
-    margin-bottom: 2.5rem;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05); /* Softer, more diffuse shadow */
-    overflow: hidden;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.article-card:hover {
-    transform: translateY(-8px); /* More noticeable lift */
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); /* Stronger shadow on hover */
-}
-
-.card-image-container {
-    flex-shrink: 0;
-    width: 250px;
-    background-color: #e9ecef;
-}
-
-.card-image-container a {
-    display: block;
-    width: 100%;
-    height: 100%;
-}
-
-.card-image-container img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-    border-right: 1px solid var(--border-color);
-}
-
-.card-content {
-    padding: 1.5rem 2rem;
-    display: flex;
-    flex-direction: column;
-}
-
-.article-meta {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.85rem;
-    color: var(--secondary-text);
-    margin-bottom: 0.75rem;
-    text-transform: uppercase;
-}
-
-.article-source {
-    font-weight: 600;
-    color: var(--accent-color);
-}
-
-.article-title {
-    margin: 0;
-    font-size: 1.3rem;
-    line-height: 1.4;
-}
-
-.article-title a {
-    text-decoration: none;
-    color: var(--primary-text);
-    transition: color 0.2s ease;
-}
-
-.article-title a:hover {
-    color: var(--accent-color);
-}
-
-.article-description {
-    font-size: 0.95rem;
-    margin-top: auto;
-    padding-top: 1rem;
-    color: #555;
-}
-
-footer {
-    text-align: center;
-    padding: 2rem;
-    font-size: 0.9rem;
-    color: var(--secondary-text);
-}
-
-@media (max-width: 768px) {
-    header h1 {
-        font-size: 3rem;
-    }
-    .article-card {
-        flex-direction: column;
-    }
-
-    .card-image-container {
-        width: 100%;
-        height: 200px;
-    }
-    
-    .card-image-container img {
-        border-right: none;
-        border-bottom: 1px solid var(--border-color);
-    }
-
-    .card-content {
-        padding: 1.5rem;
-    }
-}
-
-/* Add this new code to the end of your style.css file */
-
-.controls-container {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-    margin-bottom: 2.5rem;
-}
-
-.search-container {
-    width: 100%;
-}
-
-#search-input {
-    width: 100%;
-    padding: 1rem;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    font-size: 1rem;
-    font-family: var(--font-body);
-    box-sizing: border-box;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-#search-input:focus {
-    outline: none;
-    border-color: var(--accent-color);
-    box-shadow: 0 0 0 3px rgba(230, 126, 34, 0.2);
-}
-
 #filter-container {
+    margin-bottom: 2.5rem;
     text-align: center;
     display: flex;
     flex-wrap: wrap;
@@ -212,14 +122,136 @@ footer {
     cursor: pointer;
     transition: all 0.2s ease-in-out;
 }
-
-.filter-btn:hover {
-    background-color: #f0f2f5;
-    border-color: #ccc;
-}
-
+.filter-btn:hover { background-color: var(--border-color); }
 .filter-btn.active {
     background-color: var(--accent-color);
     color: #ffffff;
     border-color: var(--accent-color);
+}
+
+/* --- 5. Article Card Styling --- */
+.article-card {
+    display: flex;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    margin-bottom: 2.5rem;
+    box-shadow: 0 4px 20px var(--shadow-color);
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+.article-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 10px 25px var(--shadow-color);
+}
+.card-image-container {
+    flex-shrink: 0;
+    width: 250px;
+    background-color: var(--border-color);
+}
+.card-image-container a { display: block; width: 100%; height: 100%; }
+.card-image-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+.card-content {
+    padding: 1.5rem 2rem;
+    display: flex;
+    flex-direction: column;
+}
+.article-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: var(--secondary-text);
+    margin-bottom: 0.75rem;
+    text-transform: uppercase;
+}
+.article-source {
+    font-weight: 600;
+    color: var(--accent-color);
+}
+.article-title { margin: 0; font-size: 1.3rem; line-height: 1.4; }
+.article-title a {
+    text-decoration: none;
+    color: var(--primary-text);
+    transition: color 0.2s ease;
+}
+.article-title a:hover { color: var(--accent-color); }
+.article-description {
+    font-size: 0.95rem;
+    margin-top: auto;
+    padding-top: 1rem;
+}
+
+/* --- 6. Skeleton Loader Styles --- */
+#loading { text-align: center; font-size: 1.2rem; }
+.skeleton-card {
+    display: flex;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    margin-bottom: 2.5rem;
+    box-shadow: 0 4px 20px var(--shadow-color);
+    overflow: hidden;
+    padding: 1.5rem 2rem;
+}
+.skeleton-image {
+    width: 200px;
+    height: 150px;
+    flex-shrink: 0;
+    background: var(--skeleton-base);
+    border-radius: 8px;
+    margin-right: 1.5rem;
+}
+.skeleton-content { flex-grow: 1; }
+.skeleton-meta, .skeleton-title, .skeleton-text {
+    background: var(--skeleton-base);
+    border-radius: 4px;
+}
+.skeleton-meta { height: 15px; width: 70%; margin-bottom: 1rem; }
+.skeleton-title { height: 25px; width: 90%; margin-bottom: 0.75rem; }
+.skeleton-text { height: 18px; width: 100%; }
+.skeleton-text:last-child { width: 80%; margin-top: 0.5rem; }
+
+/* Shimmer Animation */
+.skeleton-image, .skeleton-meta, .skeleton-title, .skeleton-text {
+    background-image: linear-gradient(90deg, var(--skeleton-base) 0px, var(--skeleton-shine) 40px, var(--skeleton-base) 80px);
+    background-size: 600px;
+    animation: shimmer 1.5s infinite linear;
+}
+@keyframes shimmer {
+    0% { background-position: -250px; }
+    100% { background-position: 350px; }
+}
+
+/* --- 7. "Load More" Button --- */
+#load-more-container { text-align: center; margin: 2rem 0; }
+#load-more-btn {
+    background-color: var(--accent-color);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 0.75rem 2rem;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    display: none; /* Hidden by default */
+}
+#load-more-btn:hover { background-color: #d35400; }
+#load-more-btn:disabled { background-color: #95a5a6; cursor: not-allowed; }
+
+/* --- 8. Responsive Design --- */
+@media (max-width: 768px) {
+    header h1 { font-size: 3rem; }
+    .article-card, .skeleton-card { flex-direction: column; }
+    .card-image-container, .skeleton-image {
+        width: 100%;
+        height: 200px;
+        margin-right: 0;
+        margin-bottom: 1.5rem;
+    }
 }

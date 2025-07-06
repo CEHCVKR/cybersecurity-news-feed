@@ -14,18 +14,41 @@
     <header>
         <h1>Cybersecurity Central</h1>
         <p>Your daily digest of cybersecurity news and threats.</p>
+        <div class="theme-switch-wrapper">
+            <label class="theme-switch" for="checkbox">
+                <input type="checkbox" id="checkbox" />
+                <div class="slider round"></div>
+            </label>
+        </div>
     </header>
 
     <main>
-        <div class="controls-container">
-            <div class="search-container">
-                <input type="text" id="search-input" placeholder="Search articles...">
+        <div id="filter-container"></div>
+        
+        <div id="loading">
+             <div class="skeleton-card">
+                <div class="skeleton-image"></div>
+                <div class="skeleton-content">
+                    <div class="skeleton-meta"></div>
+                    <div class="skeleton-title"></div>
+                    <div class="skeleton-text"></div>
+                </div>
             </div>
-            <div id="filter-container"></div>
+             <div class="skeleton-card">
+                <div class="skeleton-image"></div>
+                <div class="skeleton-content">
+                    <div class="skeleton-meta"></div>
+                    <div class="skeleton-title"></div>
+                    <div class="skeleton-text"></div>
+                </div>
+            </div>
         </div>
 
-        <div id="loading">Fetching the latest news... ⏳</div>
         <div id="news-feed-container"></div>
+
+        <div id="load-more-container">
+            <button id="load-more-btn">Load More</button>
+        </div>
     </main>
 
     <footer>

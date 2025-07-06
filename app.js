@@ -1,21 +1,38 @@
 document.addEventListener("DOMContentLoaded", () => {
+    // --- Element Selections ---
     const feedContainer = document.getElementById("news-feed-container");
-    const loadingIndicator = document.getElementById("loading");
+    const loadingContainer = document.getElementById("loading");
     const filterContainer = document.getElementById("filter-container");
-    const searchInput = document.getElementById("search-input");
+    const loadMoreBtn = document.getElementById("load-more-btn");
+    const themeToggle = document.getElementById("checkbox");
 
+    // --- State Management ---
     const NEWS_ENDPOINT = "/.netlify/functions/getNews";
-    
-    let masterArticleList = []; // Holds all fetched articles
+    let masterArticleList = [];
+    let currentlyDisplayedArticles = [];
+    let currentPage = 1;
+    const ARTICLES_PER_PAGE = 10;
 
+    // --- Dark Mode ---
+    themeToggle.addEventListener('change', () => {
+        document.body.classList.toggle('dark-mode');
+        localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+    });
+
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') {
+        document.body.classList.add('dark-mode');
+        themeToggle.checked = true;
+    }
+
+    // --- Rendering Functions ---
     function renderArticles(articles) {
-        feedContainer.innerHTML = "";
-        
         if (!articles || articles.length === 0) {
             feedContainer.innerHTML = "<p>No articles found matching your criteria.</p>";
             return;
         }
 
+        const fragment = document.createDocumentFragment();
         for (const item of articles) {
             const articleElement = document.createElement("div");
             articleElement.className = "article-card";
@@ -36,40 +53,57 @@ document.addEventListener("DOMContentLoaded", () => {
                     <h2 class="article-title"><a href="${item.link}" target="_blank" rel="noopener noreferrer">${item.title}</a></h2>
                     <p class="article-description">${item.description}</p>
                 </div>`;
-            feedContainer.appendChild(articleElement);
+            fragment.appendChild(articleElement);
         }
+        feedContainer.appendChild(fragment);
     }
 
-    // NEW: Combined function to handle both search and filter
+    // --- "Load More" Logic ---
+    function loadMoreArticles() {
+        currentPage++;
+        const startIndex = (currentPage - 1) * ARTICLES_PER_PAGE;
+        const endIndex = currentPage * ARTICLES_PER_PAGE;
+        const newArticles = currentlyDisplayedArticles.slice(startIndex, endIndex);
+        renderArticles(newArticles);
+
+        // Hide button if no more articles
+        if (endIndex >= currentlyDisplayedArticles.length) {
+            loadMoreBtn.style.display = 'none';
+        }
+    }
+    loadMoreBtn.addEventListener('click', loadMoreArticles);
+
+    // --- Filtering Logic ---
     function applyFilters() {
-        const searchTerm = searchInput.value.toLowerCase();
         const activeFilterButton = filterContainer.querySelector('.filter-btn.active');
         const selectedSource = activeFilterButton ? activeFilterButton.dataset.source : 'All';
 
-        let filteredArticles = masterArticleList;
-
-        // 1. Filter by source
-        if (selectedSource !== 'All') {
-            filteredArticles = filteredArticles.filter(article => article.source === selectedSource);
+        if (selectedSource === 'All') {
+            currentlyDisplayedArticles = [...masterArticleList];
+        } else {
+            currentlyDisplayedArticles = masterArticleList.filter(article => article.source === selectedSource);
         }
-
-        // 2. Filter by search term
-        if (searchTerm) {
-            filteredArticles = filteredArticles.filter(article => 
-                article.title.toLowerCase().includes(searchTerm) ||
-                (article.description && article.description.toLowerCase().includes(searchTerm))
-            );
+        
+        // Reset view for the new filter
+        feedContainer.innerHTML = '';
+        currentPage = 1;
+        const initialArticles = currentlyDisplayedArticles.slice(0, ARTICLES_PER_PAGE);
+        renderArticles(initialArticles);
+        
+        // Show or hide "Load More" button based on new filtered list
+        if (currentlyDisplayedArticles.length > ARTICLES_PER_PAGE) {
+            loadMoreBtn.style.display = 'block';
+        } else {
+            loadMoreBtn.style.display = 'none';
         }
-
-        renderArticles(filteredArticles);
     }
 
-    function setupControls() {
-        // --- Setup Filter Buttons ---
+    function setupFilters() {
         const sources = ['All', ...new Set(masterArticleList.map(article => article.source))];
         filterContainer.innerHTML = sources.map(source => 
             `<button class="filter-btn" data-source="${source}">${source}</button>`
         ).join('');
+        
         const filterButtons = filterContainer.querySelectorAll('.filter-btn');
         filterButtons[0].classList.add('active'); // Activate "All" button
 
@@ -79,27 +113,33 @@ document.addEventListener("DOMContentLoaded", () => {
             e.target.classList.add('active');
             applyFilters();
         });
-
-        // --- Setup Search Input ---
-        searchInput.addEventListener('input', applyFilters);
     }
 
+    // --- Initial Data Fetch ---
     async function loadNews() {
         try {
-            loadingIndicator.style.display = 'block';
             const response = await fetch(NEWS_ENDPOINT);
-            const articles = await response.json();
+            if (!response.ok) throw new Error(`Server error: ${response.status}`);
             
-            masterArticleList = articles; // Save the full list
+            masterArticleList = await response.json();
+            currentlyDisplayedArticles = [...masterArticleList];
             
-            loadingIndicator.style.display = 'none';
-            renderArticles(masterArticleList); // Render all articles initially
-            setupControls(); // Create the filter and search controls
+            loadingContainer.style.display = 'none'; // Hide skeletons
+            
+            // Initial render
+            const initialArticles = currentlyDisplayedArticles.slice(0, ARTICLES_PER_PAGE);
+            renderArticles(initialArticles);
+            
+            // Show "Load More" if needed
+            if(currentlyDisplayedArticles.length > ARTICLES_PER_PAGE) {
+                loadMoreBtn.style.display = 'block';
+            }
+
+            setupFilters();
 
         } catch (error) {
             console.error("Failed to load news:", error);
-            loadingIndicator.textContent = "Failed to load news feed.";
-            loadingIndicator.style.color = "#d9534f";
+            loadingContainer.innerHTML = `<p style="color: #d9534f;">Failed to load news feed. Please try again later.</p>`;
         }
     }
 

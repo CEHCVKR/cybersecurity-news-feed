@@ -308,3 +308,14 @@ main {
         gap: 1rem; /* Adds space between source and date */
     }
 }
+
+
+/* Add this to the end of your style.css */
+.article-summary {
+    font-style: italic;
+    color: var(--secondary-text);
+    border-left: 3px solid var(--accent-color);
+    padding-left: 1rem;
+    margin-top: 1rem;
+    font-size: 0.9rem;
+}

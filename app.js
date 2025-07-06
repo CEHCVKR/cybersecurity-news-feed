@@ -38,7 +38,6 @@ document.addEventListener("DOMContentLoaded", () => {
         saveBookmarks();
     }
 
-
     // --- Dark Mode ---
     themeToggle.addEventListener('change', () => {
         document.body.classList.toggle('dark-mode');
@@ -53,7 +52,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // --- Rendering Functions ---
     function renderArticles(articles) {
-        // This function now only appends articles to the container
         const fragment = document.createDocumentFragment();
         for (const item of articles) {
             const articleElement = document.createElement("div");
@@ -107,7 +105,6 @@ document.addEventListener("DOMContentLoaded", () => {
             const articleLink = bookmarkIcon.dataset.link;
             toggleBookmark(articleLink);
             bookmarkIcon.classList.toggle('bookmarked');
-            // If we are in the "Bookmarked" view, re-apply filters to remove the card instantly
             if (filterContainer.querySelector('.filter-btn.active')?.dataset.source === 'Bookmarked') {
                 applyFilters();
             }
@@ -127,10 +124,16 @@ document.addEventListener("DOMContentLoaded", () => {
             currentlyDisplayedArticles = masterArticleList.filter(article => article.source === selectedSource);
         }
         
-        // Clear the container before rendering a new filtered view
         feedContainer.innerHTML = '';
         currentPage = 1;
         const initialArticles = currentlyDisplayedArticles.slice(0, ARTICLES_PER_PAGE);
+        
+        if (initialArticles.length === 0) {
+            feedContainer.innerHTML = "<p>No articles found matching your criteria.</p>";
+            loadMoreBtn.style.display = 'none';
+            return;
+        }
+
         renderArticles(initialArticles);
         
         if (currentlyDisplayedArticles.length > ARTICLES_PER_PAGE) {
@@ -151,18 +154,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
         filterContainer.addEventListener('click', (e) => {
             if (e.target.tagName !== 'BUTTON') return;
-
             filterButtons.forEach(btn => btn.classList.remove('active'));
             e.target.classList.add('active');
-            
-            // **THE FIX IS HERE:** The stray 'ax' is removed.
             applyFilters();
         });
     }
 
     // --- Initial Data Fetch ---
     async function loadNews() {
-        loadBookmarks(); // Load saved bookmarks first
+        loadBookmarks();
         try {
             const response = await fetch(NEWS_ENDPOINT);
             if (!response.ok) throw new Error(`Server error: ${response.status}`);

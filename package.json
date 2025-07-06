@@ -1,0 +1,14 @@
+{
+  "name": "cybersecurity-news-feed",
+  "version": "1.0.0",
+  "description": "A news aggregator",
+  "main": "index.html",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "rss-parser": "^3.13.0"
+  }
+}
